@@ -33,6 +33,63 @@ class ClienteController extends Cliente {
         }
 
     }
+
+    /**
+     * Faz a chamada ao modelo para inserir um novo cliente
+     * @param req Requisição do cliente
+     * @param res Resposta do servidor
+     * @returns (200) Objeto do cliente inserido
+     * @returns (400) Erro ao inserir cliente
+     * @returns (500) Erro na consulta
+     */
+    static async novo(req: Request, res: Response): Promise<Response> {
+        try {
+            const dadosRecebidosCliente = req.body;
+
+            const respostaModelo = await Cliente.cadastrarCliente(dadosRecebidosCliente);
+
+            if (respostaModelo) {
+                return res.status(201).json({ mensagem: "Cliente cadastrado com sucesso." });
+            } else {
+                return res.status(400).json({ mensagem: "Erro ao cadastrar cliente." });
+            }
+        } catch (error) {
+            console.error(`Erro no modelo. ${error}`);
+
+            return res.status(500).json({ mensagem: "Não foi possível inserir o cliente" });
+        }
+    }
+
+    /**
+     * Faz a chamada ao modelo para obter o cliente selecionado e devolve ao cliente
+     * 
+     * @param req Requisição do cliente
+     * @param res Resposta do servidor
+     * @returns (200) Objeto do cliente selecionado
+     * @returns (400) Erro no ID do cliente
+     * @returns (500) Erro na consulta
+     */
+    static async cliente(req: Request, res: Response): Promise<Response> {
+        try {
+            const cpf: string = req.params.cpf as string;
+
+            if (!cpf || cpf.trim() == "") {
+                return res.status(400).json({ mensagem: "CPF inválido." });
+            }
+
+            const respostaModelo = await Cliente.listarCliente(cpf);
+
+            if (respostaModelo == null) {
+                return res.status(200).json({ mensagem: "Nenhum cliente encontrado com o CPF fornecido." });
+            }
+
+            return res.status(200).json(respostaModelo);
+        } catch (error) {
+            console.error(`Erro ao acesso o modelo. ${error}`);
+
+            return res.status(500).json({ mensagem: "Não foi possível recuperar o cliente." });
+        }
+    }
 }
 
 export default ClienteController;
